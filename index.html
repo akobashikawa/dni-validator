@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <link href='https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons' rel="stylesheet">
+    <link href="https://unpkg.com/vuetify/dist/vuetify.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+    <title>DNI Validator</title>
+</head>
+
+<body>
+    <div class="container" id="app">
+        <v-app>
+            <v-navigation-drawer v-model="drawer" fixed app>
+                <v-list dense>
+                    <v-list-tile @click="">
+                        <v-list-tile-action>
+                            <v-icon>contact_mail</v-icon>
+                        </v-list-tile-action>
+                        <v-list-tile-content>
+                            <v-list-tile-title>
+                                DNI Validator 2018 @rulokoba
+                            </v-list-tile-title>
+                        </v-list-tile-content>
+                    </v-list-tile>
+                </v-list>
+            </v-navigation-drawer>
+            <v-toolbar color="indigo" dark fixed app>
+                <v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
+                <v-toolbar-title>DNI Validator</v-toolbar-title>
+            </v-toolbar>
+            <v-content>
+                <v-container fluid>
+                    <v-layout row>
+                        <v-flex xs8>
+                            <v-text-field label="DNI" class="text-right input-group--focused" v-model="dni" hint="8 dígitos" mask="########"></v-text-field>
+                        </v-flex>
+                        <v-flex xs2>
+                            <v-text-field label="Extra" v-model="cchar" hint="1 caracter" mask="N"></v-text-field>
+                        </v-flex>
+                    </v-layout>
+                    <v-btn @click="validate" color="info" block> Validar </v-btn>
+
+                    <v-alert :value="result=='OK'" type="success">
+                        {{ result }}
+                    </v-alert>
+                    <v-alert :value="result=='KO'" type="error">
+                        {{ result }}
+                    </v-alert>
+                    <v-alert :value="showContact" type="info">
+                        DNI Validator 2018
+                    </v-alert>
+                </v-container>
+            </v-content>
+        </v-app>
+
+
+    </div>
+
+    <script src="https://unpkg.com/vue"></script>
+    <script src="https://unpkg.com/vuetify/dist/vuetify.js"></script>
+
+    <script>
+        var app = new Vue({
+            el: '#app',
+            data: {
+                dni: '12345678',
+                cchar: '1',
+                result: '',
+                drawer: null,
+                showContact: false
+            },
+            methods: {
+                // https://wordpress.org/plugins/godni/
+                validateDNI: function (dni, cchar) {
+                    const numberKeys = [6, 7, 8, 9, 0, 1, 1, 2, 3, 4, 5];
+                    const charKeys = ['K', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+
+                    const factors = [3, 2, 7, 6, 5, 4, 3, 2];
+                    const dniDigits = dni.trim().split('').map(x => parseInt(x, 10));
+                    const sum = dniDigits.reduce((sum, x, i) => {
+                        sum += factors[i] * x;
+                        console.log(`${i}: ${x} * ${factors[i]} = ${factors[i] * x} => ${sum}`);
+                        return sum;
+                    }, 0);
+                    let keyIndex = 11 - (sum % 11);
+                    keyIndex = keyIndex === 11 ? 0 : keyIndex;
+
+                    const control = parseInt(cchar, 10) || cchar.toUpperCase();
+                    console.log(`=> keyIndex: ${keyIndex} => ${numberKeys[keyIndex]} / ${charKeys[keyIndex]}`);
+                    if (isNaN(control)) {
+                        return control == charKeys[keyIndex];
+                    } else {
+                        return control == numberKeys[keyIndex];
+                    }
+                },
+                validate: function () {
+                    this.result = this.validateDNI(this.dni, this.cchar) ? 'OK' : 'KO';
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>
